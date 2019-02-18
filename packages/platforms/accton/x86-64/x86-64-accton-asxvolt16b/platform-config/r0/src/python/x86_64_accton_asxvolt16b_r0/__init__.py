@@ -9,7 +9,7 @@ class OnlPlatform_x86_64_accton_asxvolt16b_r0(OnlPlatformAccton,
 
     def baseconfig(self):
         #self.insmod('ym2651y')
-        for m in [ 'fan', 'psu', 'leds', 'sfp', 'sys', 'thermal' ]:
+        for m in [ 'cpld', 'fan', 'psu', 'leds', 'sfp', 'sys', 'thermal' ]:
             self.insmod("x86-64-accton-asxvolt16b-%s.ko" % m)
 
         return True
