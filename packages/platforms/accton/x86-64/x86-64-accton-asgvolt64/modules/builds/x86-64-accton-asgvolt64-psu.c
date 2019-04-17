@@ -157,7 +157,7 @@ enum asgvolt64_psu_sysfs_attrs {
 	static SENSOR_DEVICE_ATTR(psu##index##_pout, S_IRUGO, show_linear,  NULL, PSU##index##_POUT); \
 	static SENSOR_DEVICE_ATTR(psu##index##_model, S_IRUGO, show_string,  NULL, PSU##index##_MODEL); \
 	static SENSOR_DEVICE_ATTR(psu##index##_serial, S_IRUGO, show_string,  NULL, PSU##index##_SERIAL);\
-	static SENSOR_DEVICE_ATTR(psu##index##_temp1_input, S_IRUGO, show_psu,  NULL, PSU##index##_TEMP_INPUT); \
+	static SENSOR_DEVICE_ATTR(psu##index##_temp1_input, S_IRUGO, show_linear,  NULL, PSU##index##_TEMP_INPUT); \
 	static SENSOR_DEVICE_ATTR(psu##index##_fan1_input, S_IRUGO, show_psu,  NULL, PSU##index##_FAN_INPUT)	
 #define DECLARE_PSU_ATTR(index) \
     &sensor_dev_attr_psu##index##_present.dev_attr.attr, \
@@ -403,6 +403,12 @@ static ssize_t show_linear(struct device *dev, struct device_attribute *da, char
 			value = ((u16)data->ipmi_resp[pid].status[PSU_POUT0] |
                      (u16)data->ipmi_resp[pid].status[PSU_POUT1] << 8);
 			break;
+	    case PSU1_TEMP_INPUT:
+		case PSU2_TEMP_INPUT:
+            VALIDATE_PRESENT_RETURN(pid);          
+			value = ((u32)data->ipmi_resp[pid].status[PSU_TEMP0] |          
+                     (u32)data->ipmi_resp[pid].status[PSU_TEMP1] << 8);
+             break;       
 		default:
 			error = -EINVAL;
             goto exit;
@@ -445,12 +451,6 @@ static ssize_t show_psu(struct device *dev, struct device_attribute *da, char *b
 		case PSU2_POWER_GOOD:
             VALIDATE_PRESENT_RETURN(pid);
 			value = data->ipmi_resp[pid].status[PSU_POWER_GOOD_CPLD];
-			break;
-		case PSU1_TEMP_INPUT:
-		case PSU2_TEMP_INPUT:
-            VALIDATE_PRESENT_RETURN(pid);
-			value = ((u32)data->ipmi_resp[pid].status[PSU_TEMP0] |
-                     (u32)data->ipmi_resp[pid].status[PSU_TEMP1] << 8) * 1000;
 			break;
 		case PSU1_FAN_INPUT:
 		case PSU2_FAN_INPUT:

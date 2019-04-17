@@ -81,7 +81,7 @@ onlp_sysi_oids_get(onlp_oid_t* table, int max)
         *e++ = ONLP_PSU_ID_CREATE(i);
     }
 
-    /* 6 Fans on the chassis */
+    /* 4 Fans on the chassis */
     for (i = 1; i <= CHASSIS_FAN_COUNT; i++) {
         *e++ = ONLP_FAN_ID_CREATE(i);
     }
@@ -89,10 +89,13 @@ onlp_sysi_oids_get(onlp_oid_t* table, int max)
     return 0;
 }
 
-#define CPLD_VERSION_FORMAT "/sys/devices/platform/asgvolt64_sys/%s"
+
+#define CPLD_VERSION_SYSFS  "/sys/bus/i2c/devices/%d-00%d/version"
+
 
 typedef struct cpld_version {
-    char *attr_name;
+    int  bus;
+    int  addr;
     int   version;
     char *description;
 } cpld_version_t;
@@ -100,19 +103,19 @@ typedef struct cpld_version {
 int
 onlp_sysi_platform_info_get(onlp_platform_info_t* pi)
 {
-#if 0
+
     int i, ret;
     cpld_version_t cplds[] = {
-                               { "mb_cpld2_ver", 0, "Mainboard-CPLD#2"},
-                               { "fpga_ver", 0, "FPGA"},
-                               { "fan_cpld_ver", 0, "FAN-CPLD"} };
+                               { 9,  60, 0, "CPLD1"},
+                               { 10, 61, 0, "CPLD2"},
+                               { 11, 62, 0, "CPLD3"} };
 	/* Read CPLD version
 	 */
     for (i = 0; i < AIM_ARRAYSIZE(cplds); i++) {
-        ret = onlp_file_read_int(&cplds[i].version, CPLD_VERSION_FORMAT, cplds[i].attr_name);
+        ret = onlp_file_read_int(&cplds[i].version, CPLD_VERSION_SYSFS, cplds[i].bus, cplds[i].addr);
 
         if (ret < 0) {
-            AIM_LOG_ERROR("Unable to read version from CPLD(%s)\r\n", cplds[i].attr_name);
+            AIM_LOG_ERROR("Unable to read version from CPLD(%s)\r\n", cplds[i].description);
             return ONLP_STATUS_E_INTERNAL;
         }
     }
@@ -121,7 +124,7 @@ onlp_sysi_platform_info_get(onlp_platform_info_t* pi)
                                     cplds[0].description, cplds[0].version,
                                     cplds[1].description, cplds[1].version,                                    
                                     cplds[2].description, cplds[2].version);
-#endif                                    
+
     return ONLP_STATUS_OK;
 }
 
